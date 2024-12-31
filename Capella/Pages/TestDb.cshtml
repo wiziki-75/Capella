@@ -1,0 +1,14 @@
+﻿@page
+@model Capella.Pages.TestDbModel
+@{
+    ViewData["Title"] = "Test Database";
+}
+
+<h1>Test Database Connection</h1>
+
+<ul>
+    @foreach (var user in Model.Users)
+    {
+        <li>@user.Nom @user.Prenom (@user.Email)</li>
+    }
+</ul>
