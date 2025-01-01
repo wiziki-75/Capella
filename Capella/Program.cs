@@ -42,6 +42,21 @@ app.UseRouting();
 app.UseSession(); // Enable session middleware
 app.UseAuthorization();
 
+// Custom Middleware to Redirect to Login if Not Logged In
+app.Use(async (context, next) =>
+{
+    var sessionEmail = context.Session.GetString("Email");
+    var path = context.Request.Path;
+
+    if (string.IsNullOrEmpty(sessionEmail) && path != "/Login")
+    {
+        context.Response.Redirect("/Login");
+        return;
+    }
+
+    await next.Invoke();
+});
+
 app.MapRazorPages();
 
 app.Run();

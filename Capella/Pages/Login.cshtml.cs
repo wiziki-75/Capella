@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Http;
 using Capella.Data;
+using System.Linq;
 
 namespace Capella.Pages
 {
@@ -15,21 +15,24 @@ namespace Capella.Pages
         }
 
         [BindProperty]
-        public string Email { get; set; }
-        [BindProperty]
-        public string Password { get; set; }
+        public string Email { get; set; } // User's email
 
-        public string ErrorMessage { get; set; }
+        [BindProperty]
+        public string Password { get; set; } // User's password
+
+        public string ErrorMessage { get; set; } // Error message
 
         public IActionResult OnPost()
         {
+            // Authenticate the user
             var user = _context.Users.FirstOrDefault(u => u.Email == Email && u.Mdp == Password);
 
             if (user != null)
             {
-                // Save user information in session
+                // Set session values
+                HttpContext.Session.SetString("Email", user.Email);
                 HttpContext.Session.SetString("UserId", user.Id_User.ToString());
-                return RedirectToPage("/Index");
+                return RedirectToPage("/Index"); // Redirect to the homepage
             }
 
             ErrorMessage = "Invalid email or password.";

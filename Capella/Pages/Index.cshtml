@@ -1,10 +1,57 @@
 ﻿@page
-@model IndexModel
+@model Capella.Pages.IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Posts";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<h1>All Posts</h1>
+
+<!-- Form to Create a New Post -->
+<section>
+    <h2>Create a Post</h2>
+    <form method="post" asp-page-handler="CreatePost">
+        <textarea name="Content" placeholder="What's on your mind?" required></textarea>
+        <button type="submit">Post</button>
+    </form>
+</section>
+
+<hr />
+
+<!-- Display All Posts -->
+<section>
+    <h2>Posts</h2>
+    @foreach (var post in Model.Posts)
+    {
+        <div class="post">
+            <p><strong>@post.UserName</strong>: @post.Content</p>
+            <p><small>@post.CreatedAt.ToString("g")</small></p>
+
+            <!-- Like Button -->
+            <form method="post" asp-page-handler="LikePost">
+                <input type="hidden" name="PostId" value="@post.Id" />
+                <button type="submit">Like (@post.LikeCount)</button>
+            </form>
+
+            <!-- Replies -->
+            @if (post.Replies.Any())
+            {
+                <div class="replies">
+                    <h4>Replies:</h4>
+                    @foreach (var reply in post.Replies)
+                    {
+                        <p><strong>@reply.UserName</strong>: @reply.Content</p>
+                    }
+                </div>
+            }
+
+            <!-- Reply Form -->
+            <form method="post" asp-page-handler="ReplyPost">
+                <input type="hidden" name="PostId" value="@post.Id" />
+                <textarea name="ReplyContent" placeholder="Reply to this post" required></textarea>
+                <button type="submit">Reply</button>
+            </form>
+        </div>
+        <hr />
+    }
+    }
+</section>
