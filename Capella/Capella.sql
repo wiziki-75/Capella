@@ -1,4 +1,4 @@
-﻿-- Create cap_post table
+-- Create cap_post table
 CREATE TABLE cap_post (
     id_post INT AUTO_INCREMENT PRIMARY KEY,
     contenu TEXT NOT NULL,
@@ -27,6 +27,8 @@ CREATE TABLE cap_activity_log (
 
 -- Add answer_count column to cap_post table
 ALTER TABLE cap_post ADD answer_count INT DEFAULT 0;
+
+ALTER TABLE cap_post ADD COLUMN CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 
 DELIMITER $$
 
