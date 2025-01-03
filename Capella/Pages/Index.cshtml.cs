@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Capella.Data;
 using System.Collections.Generic;
 using System.Linq;
+using Capella.Models;
 
 namespace Capella.Pages
 {
@@ -33,11 +34,15 @@ namespace Capella.Pages
                 return;
             }
 
-            // Fetch all posts with replies and like counts
-            Posts = _context.Posts
+            // Fetch all posts
+            var allPosts = _context.Posts
                 .Include(p => p.User)
-                .Include(p => p.Replies)
-                .ThenInclude(r => r.User)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToList();
+
+            // Map posts to the view model
+            var postViewModels = allPosts
+                .Where(p => p.PostId == null) // Only top-level posts
                 .Select(p => new PostViewModel
                 {
                     Id = p.Id_Post,
@@ -45,17 +50,24 @@ namespace Capella.Pages
                     UserName = p.User.Nom + " " + p.User.Prenom,
                     CreatedAt = p.CreatedAt,
                     LikeCount = _context.Likes.Count(l => l.PostId == p.Id_Post),
-                    Replies = p.Replies.Select(r => new PostViewModel
-                    {
-                        Id = r.Id_Post,
-                        Content = r.Contenu,
-                        UserName = r.User.Nom + " " + r.User.Prenom,
-                        CreatedAt = r.CreatedAt
-                    }).ToList()
+                    Replies = allPosts
+                        .Where(r => r.PostId == p.Id_Post) // Fetch replies for this post
+                        .Select(r => new PostViewModel
+                        {
+                            Id = r.Id_Post,
+                            Content = r.Contenu,
+                            UserName = r.User.Nom + " " + r.User.Prenom,
+                            CreatedAt = r.CreatedAt,
+                            LikeCount = _context.Likes.Count(l => l.PostId == r.Id_Post)
+                        })
+                        .OrderBy(r => r.CreatedAt)
+                        .ToList()
                 })
-                .OrderByDescending(p => p.CreatedAt)
                 .ToList();
+
+            Posts = postViewModels;
         }
+
 
         public IActionResult OnPostCreatePost()
         {
@@ -100,23 +112,36 @@ namespace Capella.Pages
 
         public IActionResult OnPostReplyPost(int postId)
         {
-            if (!string.IsNullOrEmpty(ReplyContent))
+            if (string.IsNullOrEmpty(ReplyContent))
             {
-                var userId = int.Parse(HttpContext.Session.GetString("UserId"));
-
-                var replyPost = new Capella.Models.Post
-                {
-                    Contenu = ReplyContent,
-                    UserId = userId,
-                    PostId = postId
-                };
-
-                _context.Posts.Add(replyPost);
-                _context.SaveChanges();
+                return RedirectToPage(); // Avoid empty replies
             }
 
-            return RedirectToPage();
+            var userId = int.Parse(HttpContext.Session.GetString("UserId"));
+
+            var replyPost = new Post
+            {
+                Contenu = ReplyContent,
+                UserId = userId,
+                PostId = postId // Reference to the parent post
+            };
+
+            // Add the reply directly to the database
+            _context.Posts.Add(replyPost);
+            _context.SaveChanges(); // Save changes
+
+            return RedirectToPage(); // Reload the page to reflect the new reply
         }
+
+        public IActionResult OnPostLogout()
+        {
+            // Clear the session
+            HttpContext.Session.Clear();
+
+            // Redirect to login page
+            return RedirectToPage("/Login");
+        }
+
     }
 
     public class PostViewModel
@@ -128,4 +153,5 @@ namespace Capella.Pages
         public int LikeCount { get; set; }
         public List<PostViewModel> Replies { get; set; } = new List<PostViewModel>();
     }
+
 }

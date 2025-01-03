@@ -7,13 +7,13 @@
 <h1>Login</h1>
 
 <form method="post">
-    <label for="email">Email:</label>
+    <label for="email">Email :</label>
     <input type="email" id="email" name="email" asp-for="Email" required />
 
-    <label for="password">Password:</label>
+    <label for="password">Mot de passe :</label>
     <input type="password" id="password" name="password" asp-for="Password" required />
 
-    <button type="submit">Login</button>
+    <button type="submit">Se connecter</button>
 </form>
 
 @if (!string.IsNullOrEmpty(Model.ErrorMessage))

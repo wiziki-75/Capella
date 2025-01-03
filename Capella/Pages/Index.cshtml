@@ -1,57 +1,71 @@
 ﻿@page
 @model Capella.Pages.IndexModel
 @{
-    ViewData["Title"] = "Posts";
+    ViewData["Title"] = "Publications";
 }
 
-<h1>All Posts</h1>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h1>Toutes les Publications</h1>
+    <form method="post" asp-page-handler="Logout">
+        <button type="submit" style="padding: 10px 15px; background-color: #dc3545; color: white; border: none; border-radius: 5px;">
+            Déconnexion
+        </button>
+    </form>
+</div>
 
-<!-- Form to Create a New Post -->
+<!-- Formulaire pour créer une nouvelle publication -->
 <section>
-    <h2>Create a Post</h2>
+    <h2>Créer une Publication</h2>
     <form method="post" asp-page-handler="CreatePost">
-        <textarea name="Content" placeholder="What's on your mind?" required></textarea>
-        <button type="submit">Post</button>
+        <textarea name="Content" placeholder="Qu'avez-vous en tête ?" required style="width: 100%; height: 100px; margin-bottom: 10px;"></textarea>
+        <button type="submit" style="padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 5px;">Publier</button>
     </form>
 </section>
 
 <hr />
 
-<!-- Display All Posts -->
+<!-- Afficher toutes les publications -->
 <section>
-    <h2>Posts</h2>
+    <h2>Publications</h2>
     @foreach (var post in Model.Posts)
     {
-        <div class="post">
-            <p><strong>@post.UserName</strong>: @post.Content</p>
-            <p><small>@post.CreatedAt.ToString("g")</small></p>
+        <div class="post" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px;">
+            <p style="font-size: 1.2em; margin-bottom: 5px;">
+                <strong>@post.UserName</strong> : @post.Content
+            </p>
+            <p style="color: gray; font-size: 0.9em;">Publié le @post.CreatedAt.ToString("g")</p>
 
-            <!-- Like Button -->
-            <form method="post" asp-page-handler="LikePost">
+            <!-- Bouton J'aime -->
+            <form method="post" asp-page-handler="LikePost" style="margin-bottom: 10px;">
                 <input type="hidden" name="PostId" value="@post.Id" />
-                <button type="submit">Like (@post.LikeCount)</button>
+                <button type="submit" style="padding: 5px 10px; background-color: #28a745; color: white; border: none; border-radius: 5px;">
+                    J'aime (@post.LikeCount)
+                </button>
             </form>
 
-            <!-- Replies -->
+            <!-- Réponses -->
             @if (post.Replies.Any())
             {
-                <div class="replies">
-                    <h4>Replies:</h4>
+                <div class="replies" style="margin-top: 15px; padding-left: 20px; border-left: 2px solid #ddd;">
+                    <h4 style="margin-bottom: 10px;">Réponses :</h4>
                     @foreach (var reply in post.Replies)
                     {
-                        <p><strong>@reply.UserName</strong>: @reply.Content</p>
+                        <div style="margin-bottom: 10px;">
+                            <p><strong>@reply.UserName</strong> : @reply.Content</p>
+                            <p style="color: gray; font-size: 0.9em;">Publié le @reply.CreatedAt.ToString("g")</p>
+                        </div>
                     }
                 </div>
             }
 
-            <!-- Reply Form -->
-            <form method="post" asp-page-handler="ReplyPost">
+            <!-- Formulaire pour répondre -->
+            <form method="post" asp-page-handler="ReplyPost" style="margin-top: 15px;">
                 <input type="hidden" name="PostId" value="@post.Id" />
-                <textarea name="ReplyContent" placeholder="Reply to this post" required></textarea>
-                <button type="submit">Reply</button>
+                <textarea name="ReplyContent" placeholder="Répondre à cette publication" required style="width: 100%; height: 70px; margin-bottom: 10px;"></textarea>
+                <button type="submit" style="padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 5px;">
+                    Répondre
+                </button>
             </form>
         </div>
-        <hr />
-    }
     }
 </section>
