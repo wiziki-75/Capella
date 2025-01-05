@@ -1,0 +1,132 @@
+﻿@page
+@model Capella.Pages.AdminPanelModel
+@{
+    ViewData["Title"] = "Panel Administrateur";
+}
+
+<h1>Panel Administrateur</h1>
+
+<!-- Bouton de déconnexion -->
+<div style="margin-bottom: 20px; text-align: right;">
+    <form method="post" asp-page-handler="Logout">
+        <button type="submit" style="padding: 10px 15px; background-color: #dc3545; color: white; border: none; border-radius: 5px;">
+            Déconnexion
+        </button>
+    </form>
+</div>
+
+<hr />
+
+<!-- Section Gestion des Publications -->
+<section>
+    <h2>Gestion des Publications</h2>
+
+    <!-- Filtres pour les publications -->
+    <div style="margin-bottom: 15px;">
+        <input id="postSearchInput" type="text" placeholder="Rechercher une publication ou un auteur..." style="padding: 10px; width: 300px; margin-right: 10px;" />
+
+        <label for="postDateFrom">De :</label>
+        <input id="postDateFrom" type="date" style="padding: 5px; margin-right: 10px;" />
+
+        <label for="postDateTo">À :</label>
+        <input id="postDateTo" type="date" style="padding: 5px; margin-right: 10px;" />
+
+        <button id="resetFilters" type="button" style="padding: 5px 10px; background-color: #6c757d; color: white; border: none; border-radius: 5px;">
+            Réinitialiser les filtres
+        </button>
+    </div>
+
+    <!-- Tableau des publications -->
+    <table id="postTable" style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <thead>
+            <tr>
+                <th style="border: 1px solid #ccc; padding: 10px;">Auteur</th>
+                <th style="border: 1px solid #ccc; padding: 10px;">Contenu</th>
+                <th style="border: 1px solid #ccc; padding: 10px;">
+                    Date
+                    <button id="sortDateAsc" type="button" style="background: none; border: none; color: blue; cursor: pointer;">▲</button>
+                    <button id="sortDateDesc" type="button" style="background: none; border: none; color: blue; cursor: pointer;">▼</button>
+                </th>
+                <th style="border: 1px solid #ccc; padding: 10px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var post in Model.Posts)
+            {
+                <tr>
+                    <td class="post-author" style="border: 1px solid #ccc; padding: 10px;">@post.User.Nom @post.User.Prenom</td>
+                    <td class="post-content" style="border: 1px solid #ccc; padding: 10px;">@post.Contenu</td>
+                    <td class="post-date" data-date="@post.CreatedAt.ToString("yyyy-MM-dd")" style="border: 1px solid #ccc; padding: 10px;">
+                        @post.CreatedAt.ToString("g")
+                    </td>
+                    <td style="border: 1px solid #ccc; padding: 10px;">
+                        <form method="post" asp-page-handler="DeletePost">
+                            <input type="hidden" name="PostId" value="@post.Id_Post" />
+                            <button type="submit" style="background-color: #dc3545; color: white; padding: 5px 10px; border: none; border-radius: 5px;">
+                                Supprimer
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</section>
+
+@section Scripts {
+    <script>
+        // Variables pour le tri et la recherche
+        const postSearchInput = document.getElementById('postSearchInput');
+        const postDateFrom = document.getElementById('postDateFrom');
+        const postDateTo = document.getElementById('postDateTo');
+        const resetFilters = document.getElementById('resetFilters');
+        const sortDateAsc = document.getElementById('sortDateAsc');
+        const sortDateDesc = document.getElementById('sortDateDesc');
+        const postTableRows = Array.from(document.querySelectorAll('#postTable tbody tr'));
+
+        // Recherche dans le contenu et le nom/prénom des auteurs
+        postSearchInput.addEventListener('input', filterPosts);
+        postDateFrom.addEventListener('change', filterPosts);
+        postDateTo.addEventListener('change', filterPosts);
+        resetFilters.addEventListener('click', resetAllFilters);
+
+        function filterPosts() {
+            const searchValue = postSearchInput.value.toLowerCase();
+            const dateFrom = postDateFrom.value ? new Date(postDateFrom.value) : null;
+            const dateTo = postDateTo.value ? new Date(postDateTo.value) : null;
+
+            postTableRows.forEach(row => {
+                const author = row.querySelector('.post-author').textContent.toLowerCase();
+                const content = row.querySelector('.post-content').textContent.toLowerCase();
+                const date = new Date(row.querySelector('.post-date').getAttribute('data-date'));
+
+                const matchesSearch = author.includes(searchValue) || content.includes(searchValue);
+                const matchesDate = (!dateFrom || date >= dateFrom) && (!dateTo || date <= dateTo);
+
+                row.style.display = matchesSearch && matchesDate ? '' : 'none';
+            });
+        }
+
+        // Réinitialiser les filtres
+        function resetAllFilters() {
+            postSearchInput.value = '';
+            postDateFrom.value = '';
+            postDateTo.value = '';
+            filterPosts();
+        }
+
+        // Tri des publications par date
+        sortDateAsc.addEventListener('click', () => sortPostsByDate(true));
+        sortDateDesc.addEventListener('click', () => sortPostsByDate(false));
+
+        function sortPostsByDate(ascending) {
+            const tbody = document.querySelector('#postTable tbody');
+            const sortedRows = postTableRows.sort((a, b) => {
+                const dateA = new Date(a.querySelector('.post-date').getAttribute('data-date'));
+                const dateB = new Date(b.querySelector('.post-date').getAttribute('data-date'));
+                return ascending ? dateA - dateB : dateB - dateA;
+            });
+            sortedRows.forEach(row => tbody.appendChild(row));
+        }
+    </script>
+}

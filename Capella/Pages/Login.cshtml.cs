@@ -32,6 +32,7 @@ namespace Capella.Pages
                 // Set session values
                 HttpContext.Session.SetString("Email", user.Email);
                 HttpContext.Session.SetString("UserId", user.Id_User.ToString());
+                HttpContext.Session.SetString("UserRole", user.Role_Id.ToString());
                 return RedirectToPage("/Index"); // Redirect to the homepage
             }
 
