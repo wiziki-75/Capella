@@ -14,6 +14,7 @@ namespace Capella.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<Like> Likes { get; set; }
+        public DbSet<Subscription> Subscriptions { get; set; } // Ajouter la table Subscription
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -21,61 +22,86 @@ namespace Capella.Data
 
             // User table mapping
             modelBuilder.Entity<User>()
-                .ToTable("user") // Map to the "user" table in the database
-                .HasKey(u => u.Id_User); // Specify the primary key
+                .ToTable("user")
+                .HasKey(u => u.Id_User);
 
             // Post table mapping
             modelBuilder.Entity<Post>()
-                .ToTable("cap_post") // Map to the "cap_post" table in the database
-                .HasKey(p => p.Id_Post); // Specify the primary key
+                .ToTable("cap_post")
+                .HasKey(p => p.Id_Post);
 
             modelBuilder.Entity<Post>()
                 .Property(p => p.PostId)
-                .HasColumnName("post_id"); // Map PostId in the model to post_id in the database
+                .HasColumnName("post_id");
 
             modelBuilder.Entity<Post>()
                 .Property(p => p.UserId)
-                .HasColumnName("user_id"); // Map UserId in the model to user_id in the database
+                .HasColumnName("user_id");
 
             modelBuilder.Entity<Post>()
-                .HasOne(p => p.User) // Define the relationship between Post and User
+                .HasOne(p => p.User)
                 .WithMany()
                 .HasForeignKey(p => p.UserId)
-                .OnDelete(DeleteBehavior.Cascade); // Cascade delete posts when a user is deleted
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Post>()
-                .HasMany(p => p.Replies) // Define the self-referencing relationship for replies
+                .HasMany(p => p.Replies)
                 .WithOne()
                 .HasForeignKey(p => p.PostId)
-                .OnDelete(DeleteBehavior.Cascade); // Cascade delete replies when a parent post is deleted
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Like table mapping
             modelBuilder.Entity<Like>()
-                .ToTable("cap_like") // Map to the "cap_like" table
-                .HasKey(l => l.Id); // Map Id to id_post (primary key)
+                .ToTable("cap_like")
+                .HasKey(l => l.Id);
 
             modelBuilder.Entity<Like>()
                 .Property(l => l.Id)
-                .HasColumnName("id_post"); // Map Id to id_post
+                .HasColumnName("id_post"); // Map la propriété Id à id_post
 
             modelBuilder.Entity<Like>()
                 .Property(l => l.UserId)
-                .HasColumnName("user_id"); // Map UserId to user_id
+                .HasColumnName("user_id");
 
             modelBuilder.Entity<Like>()
                 .Property(l => l.PostId)
-                .HasColumnName("post_id"); // Map PostId to post_id
+                .HasColumnName("post_id");
 
             modelBuilder.Entity<Like>()
-                .HasOne(l => l.User) // Define relationship with User
+                .HasOne(l => l.User)
                 .WithMany()
                 .HasForeignKey(l => l.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Like>()
-                .HasOne(l => l.Post) // Define relationship with Post
+                .HasOne(l => l.Post)
                 .WithMany()
                 .HasForeignKey(l => l.PostId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Subscription table mapping
+            modelBuilder.Entity<Subscription>()
+                .ToTable("cap_subscription") // Nom de la table
+                .HasKey(s => s.Id); // Clé primaire
+
+            modelBuilder.Entity<Subscription>()
+                .Property(s => s.SubscriberId)
+                .HasColumnName("subscriber_id");
+
+            modelBuilder.Entity<Subscription>()
+                .Property(s => s.SubscribedToId)
+                .HasColumnName("subscribed_to_id");
+
+            modelBuilder.Entity<Subscription>()
+                .HasOne(s => s.Subscriber)
+                .WithMany()
+                .HasForeignKey(s => s.SubscriberId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Subscription>()
+                .HasOne(s => s.SubscribedTo)
+                .WithMany()
+                .HasForeignKey(s => s.SubscribedToId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

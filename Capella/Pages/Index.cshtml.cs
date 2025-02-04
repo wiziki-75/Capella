@@ -25,6 +25,9 @@ namespace Capella.Pages
         [BindProperty]
         public string ReplyContent { get; set; } // For replying to posts
 
+        public int CurrentUserId { get; set; } // Stores the ID of the currently logged-in user
+        public List<int> SubscribedUserIds { get; set; } = new List<int>(); // IDs of users the current user is subscribed to
+
         public void OnGet()
         {
             // Redirect to login if not logged in
@@ -34,10 +37,18 @@ namespace Capella.Pages
                 return;
             }
 
+            CurrentUserId = int.Parse(HttpContext.Session.GetString("UserId"));
+
             // Fetch all posts
             var allPosts = _context.Posts
                 .Include(p => p.User)
                 .OrderByDescending(p => p.CreatedAt)
+                .ToList();
+
+            // Fetch subscriptions of the current user
+            SubscribedUserIds = _context.Subscriptions
+                .Where(s => s.SubscriberId == CurrentUserId)
+                .Select(s => s.SubscribedToId)
                 .ToList();
 
             // Map posts to the view model
@@ -48,6 +59,7 @@ namespace Capella.Pages
                     Id = p.Id_Post,
                     Content = p.Contenu,
                     UserName = p.User.Nom + " " + p.User.Prenom,
+                    UserId = p.UserId,
                     CreatedAt = p.CreatedAt,
                     LikeCount = _context.Likes.Count(l => l.PostId == p.Id_Post),
                     Replies = allPosts
@@ -57,6 +69,7 @@ namespace Capella.Pages
                             Id = r.Id_Post,
                             Content = r.Contenu,
                             UserName = r.User.Nom + " " + r.User.Prenom,
+                            UserId = r.UserId,
                             CreatedAt = r.CreatedAt,
                             LikeCount = _context.Likes.Count(l => l.PostId == r.Id_Post)
                         })
@@ -67,7 +80,6 @@ namespace Capella.Pages
 
             Posts = postViewModels;
         }
-
 
         public IActionResult OnPostCreatePost()
         {
@@ -133,6 +145,48 @@ namespace Capella.Pages
             return RedirectToPage(); // Reload the page to reflect the new reply
         }
 
+        public IActionResult OnPostSubscribe(int userId)
+        {
+            var currentUserId = int.Parse(HttpContext.Session.GetString("UserId"));
+
+            // Prevent subscribing to oneself
+            if (currentUserId == userId)
+            {
+                return RedirectToPage();
+            }
+
+            // Check if the subscription already exists
+            var existingSubscription = _context.Subscriptions.FirstOrDefault(s => s.SubscriberId == currentUserId && s.SubscribedToId == userId);
+            if (existingSubscription == null)
+            {
+                var subscription = new Subscription
+                {
+                    SubscriberId = currentUserId,
+                    SubscribedToId = userId
+                };
+
+                _context.Subscriptions.Add(subscription);
+                _context.SaveChanges();
+            }
+
+            return RedirectToPage();
+        }
+
+        public IActionResult OnPostUnsubscribe(int userId)
+        {
+            var currentUserId = int.Parse(HttpContext.Session.GetString("UserId"));
+
+            // Find the subscription
+            var subscription = _context.Subscriptions.FirstOrDefault(s => s.SubscriberId == currentUserId && s.SubscribedToId == userId);
+            if (subscription != null)
+            {
+                _context.Subscriptions.Remove(subscription);
+                _context.SaveChanges();
+            }
+
+            return RedirectToPage();
+        }
+
         public IActionResult OnPostLogout()
         {
             // Clear the session
@@ -141,7 +195,6 @@ namespace Capella.Pages
             // Redirect to login page
             return RedirectToPage("/Login");
         }
-
     }
 
     public class PostViewModel
@@ -149,9 +202,9 @@ namespace Capella.Pages
         public int Id { get; set; }
         public string Content { get; set; }
         public string UserName { get; set; }
+        public int UserId { get; set; }
         public DateTime CreatedAt { get; set; }
         public int LikeCount { get; set; }
         public List<PostViewModel> Replies { get; set; } = new List<PostViewModel>();
     }
-
 }

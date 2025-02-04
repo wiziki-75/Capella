@@ -4,68 +4,197 @@
     ViewData["Title"] = "Publications";
 }
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-    <h1>Toutes les Publications</h1>
-    <form method="post" asp-page-handler="Logout">
-        <button type="submit" style="padding: 10px 15px; background-color: #dc3545; color: white; border: none; border-radius: 5px;">
-            Déconnexion
-        </button>
-    </form>
-</div>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        background-color: #f9f9f9;
+    }
 
-<!-- Formulaire pour créer une nouvelle publication -->
-<section>
-    <h2>Créer une Publication</h2>
-    <form method="post" asp-page-handler="CreatePost">
-        <textarea name="Content" placeholder="Qu'avez-vous en tête ?" required style="width: 100%; height: 100px; margin-bottom: 10px;"></textarea>
-        <button type="submit" style="padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 5px;">Publier</button>
-    </form>
-</section>
+    h1, h2 {
+        color: #333;
+        font-weight: bold;
+    }
 
-<hr />
+    h2 {
+        margin-bottom: 20px;
+    }
 
-<!-- Afficher toutes les publications -->
-<section>
-    <h2>Publications</h2>
-    @foreach (var post in Model.Posts)
-    {
-        <div class="post" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px;">
-            <p style="font-size: 1.2em; margin-bottom: 5px;">
-                <strong>@post.UserName</strong> : @post.Content
-            </p>
-            <p style="color: gray; font-size: 0.9em;">Publié le @post.CreatedAt.ToString("g")</p>
+    .container {
+        flex: 1;
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
 
-            <!-- Bouton J'aime -->
-            <form method="post" asp-page-handler="LikePost" style="margin-bottom: 10px;">
-                <input type="hidden" name="PostId" value="@post.Id" />
-                <button type="submit" style="padding: 5px 10px; background-color: #28a745; color: white; border: none; border-radius: 5px;">
-                    J'aime (@post.LikeCount)
-                </button>
-            </form>
+    .post {
+        margin-bottom: 20px;
+        padding: 20px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
 
-            <!-- Réponses -->
-            @if (post.Replies.Any())
-            {
-                <div class="replies" style="margin-top: 15px; padding-left: 20px; border-left: 2px solid #ddd;">
-                    <h4 style="margin-bottom: 10px;">Réponses :</h4>
-                    @foreach (var reply in post.Replies)
-                    {
-                        <div style="margin-bottom: 10px;">
-                            <p><strong>@reply.UserName</strong> : @reply.Content</p>
-                            <p style="color: gray; font-size: 0.9em;">Publié le @reply.CreatedAt.ToString("g")</p>
-                        </div>
-                    }
-                </div>
-            }
+        .post p {
+            margin: 0;
+            line-height: 1.6;
+        }
 
-            <!-- Formulaire pour répondre -->
-            <form method="post" asp-page-handler="ReplyPost" style="margin-top: 15px;">
-                <input type="hidden" name="PostId" value="@post.Id" />
-                <textarea name="ReplyContent" placeholder="Répondre à cette publication" required style="width: 100%; height: 70px; margin-bottom: 10px;"></textarea>
-                <button type="submit" style="padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 5px;">
-                    Répondre
-                </button>
+        .post h4 {
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+    .replies {
+        margin-top: 15px;
+        padding-left: 20px;
+        border-left: 4px solid #007bff;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        padding: 15px;
+    }
+
+    form {
+        margin-top: 15px;
+    }
+
+    textarea {
+        width: 100%;
+        height: 100px;
+        margin-bottom: 15px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 1em;
+    }
+
+    button {
+        padding: 10px 20px;
+        font-weight: bold;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+        button:focus {
+            outline: none;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .btn-muted {
+        background-color: #6c757d;
+        color: white;
+    }
+</style>
+
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1>Toutes les Publications</h1>
+            <form method="post" asp-page-handler="Logout">
+                <button type="submit" class="btn-danger">Déconnexion</button>
             </form>
         </div>
-    }
-</section>
+
+        <!-- Formulaire pour créer une nouvelle publication -->
+        <section>
+            <h2>Créer une Publication</h2>
+            <form method="post" asp-page-handler="CreatePost">
+                <textarea name="Content" placeholder="Qu'avez-vous en tête ?" required></textarea>
+                <button type="submit" class="btn-primary">Publier</button>
+            </form>
+        </section>
+
+        <hr />
+
+        <!-- Afficher toutes les publications -->
+        <section>
+            <h2>Publications</h2>
+            @foreach (var post in Model.Posts)
+            {
+                <div class="post">
+                    <p>
+                        <strong>@post.UserName</strong> : @post.Content
+                    </p>
+                    <p style="color: gray; font-size: 0.9em;">Publié le @post.CreatedAt.ToString("g")</p>
+
+                    <!-- Abonnement -->
+                    @if (Model.CurrentUserId != post.UserId) // Vérifie que l'utilisateur ne s'abonne pas à lui-même
+                    {
+                        @if (Model.SubscribedUserIds.Contains(post.UserId))
+                        {
+                            <!-- Bouton Abonné -->
+                            <form method="post" asp-page-handler="Unsubscribe" style="display: inline;">
+                                <input type="hidden" name="UserId" value="@post.UserId" />
+                                <button type="submit" class="btn-muted">Abonné</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <!-- Bouton S'abonner -->
+                            <form method="post" asp-page-handler="Subscribe" style="display: inline;">
+                                <input type="hidden" name="UserId" value="@post.UserId" />
+                                <button type="submit" class="btn-primary">S'abonner</button>
+                            </form>
+                        }
+                    }
+
+                    <!-- Bouton J'aime -->
+                    <form method="post" asp-page-handler="LikePost">
+                        <input type="hidden" name="PostId" value="@post.Id" />
+                        <button type="submit" class="btn-success">J'aime (@post.LikeCount)</button>
+                    </form>
+
+                    <!-- Réponses -->
+                    @if (post.Replies.Any())
+                    {
+                        <div class="replies">
+                            <h4>Réponses :</h4>
+                            @foreach (var reply in post.Replies)
+                            {
+                                <p>
+                                    <strong>@reply.UserName</strong> : @reply.Content
+                                </p>
+                                <p style="color: gray; font-size: 0.9em;">Publié le @reply.CreatedAt.ToString("g")</p>
+                            }
+                        </div>
+                    }
+
+                    <!-- Formulaire pour répondre -->
+                    <form method="post" asp-page-handler="ReplyPost">
+                        <input type="hidden" name="PostId" value="@post.Id" />
+                        <textarea name="ReplyContent" placeholder="Répondre à cette publication" required></textarea>
+                        <button type="submit" class="btn-primary">Répondre</button>
+                    </form>
+                </div>
+            }
+        </section>
+    </div>
+</body>
+

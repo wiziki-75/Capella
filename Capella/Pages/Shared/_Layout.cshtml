@@ -8,6 +8,29 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Capella.styles.css" asp-append-version="true" />
 </head>
+<style>
+    footer {
+        text-align: center;
+        padding: 10px 20px;
+        background-color: #f1f1f1;
+        border-top: 1px solid #ddd;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        position: relative;
+        bottom: 0;
+        width: 100%;
+        font-size: 0.9em;
+        color: #666;
+    }
+
+        footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+            footer a:hover {
+                text-decoration: underline;
+            }
+</style>
 <body>
     <header>
         @if (!string.IsNullOrEmpty(Context.Session.GetString("UserId")))
@@ -42,10 +65,8 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2024 - Capella - <a asp-area="" asp-page="/Privacy">Privacy</a>
-        </div>
+    <footer>
+        &copy; 2025 - Capella - <a asp-area="" asp-page="/Privacy">Privacy</a>
     </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
